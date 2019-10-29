@@ -5,7 +5,7 @@ let unsafeGet = (key: string, map) =>
 
 let get = (key: string, map) => {
   let value = unsafeGet(key, map);
-  Null.isEmpty(value) ? None : Some(value);
+  Null.isEmpty(Obj.magic(value)) ? None : Some(value);
 };
 
 /* TODO move to NullService */
@@ -17,7 +17,8 @@ let fastGet = (key, map) => {
   (_isInMap(value), value);
 };
 
-let has = (key: string, map) => !Null.isEmpty(unsafeGet(key, map));
+let has = (key: string, map) =>
+  !Null.isEmpty(unsafeGet(key, map) |> Obj.magic);
 
 /* let length = (map: Js.Dict.t(Js.Nullable.t('a))) =>
      Js.Array.length(Js.Dict.entries(map));
