@@ -17,13 +17,14 @@ let fastGet = (key, map) => {
   (_isInMap(value), value);
 };
 
+let has = (key: string, map) => !Null.isEmpty(unsafeGet(key, map));
+
 /* let length = (map: Js.Dict.t(Js.Nullable.t('a))) =>
      Js.Array.length(Js.Dict.entries(map));
 
    let fromList = list =>
      list |> Js.Dict.fromList |> HashMapType.dictNotNullableToDictNullable;
 
-   let has = (key: string, map) => !NullService.isEmpty(unsafeGet(key, map));
 
       */
 

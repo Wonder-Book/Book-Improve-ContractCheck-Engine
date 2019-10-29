@@ -48,8 +48,28 @@ module Program = {
     },
   };
 
-  let unsafeGetProgram = (shaderName, state) =>
+  let unsafeGetProgram = (shaderName, state) => {
+    Contract.requireCheckByThrow(
+      () =>
+        Contract.(
+          Operators.(
+            test(
+              Log.buildAssertMessage(
+                ~expect={j|program of shader:$shaderName exist|j},
+                ~actual={j|not|j},
+              ),
+              () =>
+              _getProgramMap(state)
+              |> ImmutableHashMap.has(shaderName)
+              |> assertTrue
+            )
+          )
+        ),
+      Debug.getIsDebug(DebugData.getDebugData()),
+    );
+
     _getProgramMap(state) |> ImmutableHashMap.unsafeGet(shaderName);
+  };
 
   let setProgram = (shaderName, program, state) =>
     _setProgramMap(
@@ -88,20 +108,60 @@ module GLSLLocation = {
   let _getAttributeLocationMap = state =>
     state.glslLocationData.attributeLocationMap;
 
-  let unsafeGetAttribLocation = (shaderName, fieldName, state) =>
+  let unsafeGetAttribLocation = (shaderName, fieldName, state) => {
+    Contract.requireCheckByThrow(
+      () =>
+        Contract.(
+          Operators.(
+            test(
+              Log.buildAssertMessage(
+                ~expect=
+                  {j|attrib field: $fieldName exist in shader:$shaderName|j},
+                ~actual={j|not|j},
+              ),
+              () => {
+                _getAttributeLocationMap(state)
+                |> ImmutableHashMap.has(shaderName)
+                |> assertTrue;
+
+                _getAttributeLocationMap(state)
+                |> ImmutableHashMap.unsafeGet(shaderName)
+                |> ImmutableHashMap.has(fieldName)
+                |> assertTrue;
+              },
+            )
+          )
+        ),
+      Debug.getIsDebug(DebugData.getDebugData()),
+    );
+
     _getAttributeLocationMap(state)
     |> ImmutableHashMap.unsafeGet(shaderName)
     |> ImmutableHashMap.unsafeGet(fieldName);
+  };
+
+  let _getAttribLocation = (program, fieldName, gl) =>
+    Gl.getAttribLocation(program, fieldName, gl)
+    |> Contract.ensureCheckByThrow(
+         location =>
+           Contract.(
+             Operators.(
+               test(
+                 Log.buildAssertMessage(
+                   ~expect={j|attrib location of $fieldName exist|j},
+                   ~actual={j|not|j},
+                 ),
+                 () =>
+                 location <>= (-1)
+               )
+             )
+           ),
+         Debug.getIsDebug(DebugData.getDebugData()),
+       );
 
   let setAttribLocation = (program, shaderName, fieldName, gl, state) => {
     let attributeLocationMap = _getAttributeLocationMap(state);
-    let location = Gl.getAttribLocation(program, fieldName, gl);
-
-    location === (-1) ?
-      Error.raiseError(
-        {j|Failed to get the storage location of $fieldName|j},
-      ) :
-      ();
+    let location = _getAttribLocation(program, fieldName, gl);
 
     {
       ...state,
@@ -119,19 +179,60 @@ module GLSLLocation = {
   let _getUniformLocationMap = state =>
     state.glslLocationData.uniformLocationMap;
 
-  let unsafeGetUniformLocation = (shaderName, fieldName, state) =>
+  let unsafeGetUniformLocation = (shaderName, fieldName, state) => {
+    Contract.requireCheckByThrow(
+      () =>
+        Contract.(
+          Operators.(
+            test(
+              Log.buildAssertMessage(
+                ~expect=
+                  {j|uniform field: $fieldName exist in shader:$shaderName|j},
+                ~actual={j|not|j},
+              ),
+              () => {
+                _getUniformLocationMap(state)
+                |> ImmutableHashMap.has(shaderName)
+                |> assertTrue;
+
+                _getUniformLocationMap(state)
+                |> ImmutableHashMap.unsafeGet(shaderName)
+                |> ImmutableHashMap.has(fieldName)
+                |> assertTrue;
+              },
+            )
+          )
+        ),
+      Debug.getIsDebug(DebugData.getDebugData()),
+    );
+
     _getUniformLocationMap(state)
     |> ImmutableHashMap.unsafeGet(shaderName)
     |> ImmutableHashMap.unsafeGet(fieldName);
+  };
+
+  let _getUniformLocation = (program, fieldName, gl) =>
+    Gl.getUniformLocation(program, fieldName, gl)
+    |> Contract.ensureCheckByThrow(
+         location =>
+           Contract.(
+             Operators.(
+               test(
+                 Log.buildAssertMessage(
+                   ~expect={j|uniform location of $fieldName exist|j},
+                   ~actual={j|not|j},
+                 ),
+                 () =>
+                 Obj.magic(location) |> assertNullableExist
+               )
+             )
+           ),
+         Debug.getIsDebug(DebugData.getDebugData()),
+       );
 
   let setUniformLocation = (program, shaderName, fieldName, gl, state) => {
     let uniformLocationMap = _getUniformLocationMap(state);
-    let location = Gl.getUniformLocation(program, fieldName, gl);
-    Obj.magic(location) === Js.Nullable.null ?
-      Error.raiseError(
-        {j|Failed to get the storage location of $fieldName|j},
-      ) :
-      ();
+    let location = _getUniformLocation(program, fieldName, gl);
 
     {
       ...state,
@@ -230,8 +331,28 @@ module GLSLSender = {
     },
   };
 
-  let unsafeGetShaderCacheMap = (shaderName, state) =>
+  let unsafeGetShaderCacheMap = (shaderName, state) => {
+    Contract.requireCheckByThrow(
+      () =>
+        Contract.(
+          Operators.(
+            test(
+              Log.buildAssertMessage(
+                ~expect={j|shaderCacheMap of shader:$shaderName exist|j},
+                ~actual={j|not|j},
+              ),
+              () =>
+              getUniformCacheMap(state)
+              |> ImmutableHashMap.has(shaderName)
+              |> assertTrue
+            )
+          )
+        ),
+      Debug.getIsDebug(DebugData.getDebugData()),
+    );
+
     getUniformCacheMap(state) |> ImmutableHashMap.unsafeGet(shaderName);
+  };
 
   let setShaderCacheMap = (shaderName, shaderCacheMap, state) =>
     getUniformCacheMap(state)

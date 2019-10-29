@@ -30,11 +30,13 @@ let fastGet = HashMap.fastGet;
      newMap;
    };
 
-   let has = HashMap.has;
 
    let entries = HashMap.entries;
 
     */
+
+
+   let has = HashMap.has;
 
 let getValidEntries = HashMap.getValidEntries;
 
