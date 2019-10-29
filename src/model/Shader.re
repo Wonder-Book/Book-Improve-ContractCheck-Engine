@@ -223,7 +223,7 @@ module GLSLLocation = {
                    ~actual={j|not|j},
                  ),
                  () =>
-                 Obj.magic(location) |> assertNullableExist
+                 Obj.magic(location) |> assertNullExist
                )
              )
            ),
@@ -232,7 +232,8 @@ module GLSLLocation = {
 
   let setUniformLocation = (program, shaderName, fieldName, gl, state) => {
     let uniformLocationMap = _getUniformLocationMap(state);
-    let location = _getUniformLocation(program, fieldName, gl);
+    let location =
+      _getUniformLocation(program, fieldName, gl) |> Js.Null.getUnsafe;
 
     {
       ...state,

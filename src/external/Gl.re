@@ -106,7 +106,8 @@ external bufferUint16Data: (int, Uint16Array.t, int) => unit = "bufferData";
 external getAttribLocation: (program, string) => attributeLocation = "";
 
 [@bs.send.pipe: webgl1Context]
-external getUniformLocation: (program, string) => uniformLocation = "";
+external getUniformLocation: (program, string) => Js.Null.t(uniformLocation) =
+  "";
 
 [@bs.send.pipe: webgl1Context]
 external vertexAttribPointer:

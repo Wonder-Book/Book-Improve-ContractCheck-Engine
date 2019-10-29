@@ -99,6 +99,9 @@ let assertIsBool = (source: bool) =>
 let assertNullableExist = (source: 'a) =>
   _assert(!Null.isEmpty(source), "expect exist, but actual not");
 
+let assertNullExist = (source: 'a) =>
+  _assert(!Js.Null.test(source), "expect exist, but actual not");
+
 let assertExist = (source: option('a)) =>
   _assert(Js.Option.isSome(source), "expect exist, but actual not");
 
