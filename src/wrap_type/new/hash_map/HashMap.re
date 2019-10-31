@@ -1,32 +1,10 @@
 let createEmpty = (): Js.Dict.t(Js.Nullable.t('a)) => Js.Dict.empty();
 
-let _unsafeGet = (key: string, map) =>
+let unsafeGet = (key: string, map) =>
   Js.Dict.unsafeGet(map, key) |> HashMapType.nullableToNotNullable;
 
-let has = (key: string, map) =>
-  !Null.isEmpty(_unsafeGet(key, map) |> Obj.magic);
-
-let unsafeGet = (key: string, map) =>
-  _unsafeGet(key, map)
-  |> Contract.ensureCheckByThrow(
-       value =>
-         Contract.(
-           Operators.(
-             test(
-               Log.buildAssertMessage(
-                 ~expect={j|the value in key:$key exist|j},
-                 ~actual={j|not|j},
-               ),
-               () =>
-               Obj.magic(value) |> assertNullableExist
-             )
-           )
-         ),
-       Debug.getIsDebug(DebugData.getDebugData()),
-     );
-
 let get = (key: string, map) => {
-  let value = _unsafeGet(key, map);
+  let value = unsafeGet(key, map);
   Null.isEmpty(Obj.magic(value)) ? None : Some(value);
 };
 
@@ -34,10 +12,13 @@ let get = (key: string, map) => {
 let _isInMap = value => Obj.magic(value) !== Js.Nullable.undefined;
 
 let fastGet = (key, map) => {
-  let value = _unsafeGet(key, map);
+  let value = unsafeGet(key, map);
 
   (_isInMap(value), value);
 };
+
+let has = (key: string, map) =>
+  !Null.isEmpty(unsafeGet(key, map) |> Obj.magic);
 
 /* let length = (map: Js.Dict.t(Js.Nullable.t('a))) =>
      Js.Array.length(Js.Dict.entries(map));
