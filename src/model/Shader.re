@@ -49,7 +49,7 @@ module Program = {
   };
 
   let unsafeGetProgram = (shaderName, state) => {
-    Contract.requireCheckByThrow(
+    Contract.requireCheck(
       () =>
         Contract.(
           Operators.(
@@ -109,7 +109,7 @@ module GLSLLocation = {
     state.glslLocationData.attributeLocationMap;
 
   let unsafeGetAttribLocation = (shaderName, fieldName, state) => {
-    Contract.requireCheckByThrow(
+    Contract.requireCheck(
       () =>
         Contract.(
           Operators.(
@@ -142,7 +142,7 @@ module GLSLLocation = {
 
   let _getAttribLocation = (program, fieldName, gl) =>
     Gl.getAttribLocation(program, fieldName, gl)
-    |> Contract.ensureCheckByThrow(
+    |> Contract.ensureCheck(
          location =>
            Contract.(
              Operators.(
@@ -180,7 +180,7 @@ module GLSLLocation = {
     state.glslLocationData.uniformLocationMap;
 
   let unsafeGetUniformLocation = (shaderName, fieldName, state) => {
-    Contract.requireCheckByThrow(
+    Contract.requireCheck(
       () =>
         Contract.(
           Operators.(
@@ -213,7 +213,7 @@ module GLSLLocation = {
 
   let _getUniformLocation = (program, fieldName, gl) =>
     Gl.getUniformLocation(program, fieldName, gl)
-    |> Contract.ensureCheckByThrow(
+    |> Contract.ensureCheck(
          location =>
            Contract.(
              Operators.(
@@ -289,7 +289,7 @@ module GLSLSender = {
 
   let sendFloat3 =
       (gl, (name: string, pos: Gl.uniformLocation), valueArr, shaderCacheMap) => {
-    Contract.requireCheckByThrow(
+    Contract.requireCheck(
       () =>
         Contract.(
           Operators.(
@@ -333,7 +333,7 @@ module GLSLSender = {
   };
 
   let unsafeGetShaderCacheMap = (shaderName, state) => {
-    Contract.requireCheckByThrow(
+    Contract.requireCheck(
       () =>
         Contract.(
           Operators.(
@@ -381,7 +381,7 @@ let _compileShader = (gl, glslSource: string, shader) => {
   Gl.compileShader(shader, gl);
 
   shader
-  |> Contract.ensureCheckByThrow(
+  |> Contract.ensureCheck(
        shader =>
          Contract.(
            Gl.getShaderParameter(shader, Gl.getCompileStatus(gl), gl)
@@ -406,7 +406,7 @@ let _linkProgram = (program, gl) => {
   Gl.linkProgram(program, gl);
 
   ()
-  |> Contract.ensureCheckByThrow(
+  |> Contract.ensureCheck(
        () =>
          Contract.
            /*! perf: slow

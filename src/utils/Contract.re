@@ -6,7 +6,7 @@ let test = (message, func) =>
   | _ => Error.raiseError(message)
   };
 
-let requireCheck =
+let requireCheckReturnResult =
     (checkFunc: unit => unit, bodyFunc: unit => 'a, isCheck: bool)
     : Result.t('a, Js.Exn.t) =>
   isCheck ?
@@ -21,7 +21,7 @@ let requireCheck =
     } :
     bodyFunc() |> Result.succeed;
 
-let ensureCheck =
+let ensureCheckReturnResult =
     (checkFunc: 'a => unit, isCheck: bool, returnVal: 'a)
     : Result.t('a, Js.Exn.t) =>
   isCheck ?
@@ -36,7 +36,7 @@ let ensureCheck =
     } :
     returnVal |> Result.succeed;
 
-let requireAndEnsureCheck =
+let requireAndEnsureCheckReturnResult =
     (
       requireCheckFunc: unit => unit,
       bodyFunc: unit => 'a,
@@ -60,10 +60,10 @@ let requireAndEnsureCheck =
     } :
     bodyFunc() |> Result.succeed;
 
-let requireCheckByThrow = (checkFunc: unit => unit, isCheck: bool): unit =>
+let requireCheck = (checkFunc: unit => unit, isCheck: bool): unit =>
   isCheck ? checkFunc() : ();
 
-let ensureCheckByThrow =
+let ensureCheck =
     (checkFunc: 'a => unit, isCheck: bool, returnVal: 'a): 'a =>
   isCheck ?
     {

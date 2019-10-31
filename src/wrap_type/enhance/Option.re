@@ -1,5 +1,5 @@
 let unsafeGet = optionData =>
-  Contract.requireCheck(
+  Contract.requireCheckReturnResult(
     () =>
       Contract.(
         Operators.(

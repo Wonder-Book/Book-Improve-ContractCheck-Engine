@@ -77,7 +77,7 @@ let setLookAt = (eye, center, up, mat) => {
 };
 
 let buildPerspective = ((fovy, aspect, near, far), mat) =>
-  Contract.requireCheck(
+  Contract.requireCheckReturnResult(
     () =>
       Contract.(
         Operators.(
