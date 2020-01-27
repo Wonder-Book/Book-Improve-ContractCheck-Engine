@@ -48,13 +48,13 @@ module Program = {
     },
   };
 
-  let unsafeGetProgram = (shaderName, state) => {
-    Contract.requireCheck(
+  let unsafeGetProgramByThrow = (shaderName, state) => {
+    ContractUtils.requireCheck(
       () =>
-        Contract.(
+        ContractUtils.(
           Operators.(
             test(
-              Log.buildAssertMessage(
+              LogUtils.buildAssertMessage(
                 ~expect={j|program of shader:$shaderName exist|j},
                 ~actual={j|not|j},
               ),
@@ -68,7 +68,7 @@ module Program = {
       Debug.getIsDebug(DebugData.getDebugData()),
     );
 
-    _getProgramMap(state) |> ImmutableHashMap.unsafeGet(shaderName);
+    _getProgramMap(state) |> ImmutableHashMap.unsafeGetByNull(shaderName);
   };
 
   let setProgram = (shaderName, program, state) =>
@@ -108,13 +108,13 @@ module GLSLLocation = {
   let _getAttributeLocationMap = state =>
     state.glslLocationData.attributeLocationMap;
 
-  let unsafeGetAttribLocation = (shaderName, fieldName, state) => {
-    Contract.requireCheck(
+  let unsafeGetAttribLocationByThrow = (shaderName, fieldName, state) => {
+    ContractUtils.requireCheck(
       () =>
-        Contract.(
+        ContractUtils.(
           Operators.(
             test(
-              Log.buildAssertMessage(
+              LogUtils.buildAssertMessage(
                 ~expect=
                   {j|attrib field: $fieldName exist in shader:$shaderName|j},
                 ~actual={j|not|j},
@@ -125,7 +125,7 @@ module GLSLLocation = {
                 |> assertTrue;
 
                 _getAttributeLocationMap(state)
-                |> ImmutableHashMap.unsafeGet(shaderName)
+                |> ImmutableHashMap.unsafeGetByNull(shaderName)
                 |> ImmutableHashMap.has(fieldName)
                 |> assertTrue;
               },
@@ -136,18 +136,18 @@ module GLSLLocation = {
     );
 
     _getAttributeLocationMap(state)
-    |> ImmutableHashMap.unsafeGet(shaderName)
-    |> ImmutableHashMap.unsafeGet(fieldName);
+    |> ImmutableHashMap.unsafeGetByNull(shaderName)
+    |> ImmutableHashMap.unsafeGetByNull(fieldName);
   };
 
   let _getAttribLocation = (program, fieldName, gl) =>
     Gl.getAttribLocation(program, fieldName, gl)
-    |> Contract.ensureCheck(
+    |> ContractUtils.ensureCheck(
          location =>
-           Contract.(
+           ContractUtils.(
              Operators.(
                test(
-                 Log.buildAssertMessage(
+                 LogUtils.buildAssertMessage(
                    ~expect={j|attrib location of $fieldName exist|j},
                    ~actual={j|not|j},
                  ),
@@ -179,13 +179,13 @@ module GLSLLocation = {
   let _getUniformLocationMap = state =>
     state.glslLocationData.uniformLocationMap;
 
-  let unsafeGetUniformLocation = (shaderName, fieldName, state) => {
-    Contract.requireCheck(
+  let unsafeGetUniformLocationByThrow = (shaderName, fieldName, state) => {
+    ContractUtils.requireCheck(
       () =>
-        Contract.(
+        ContractUtils.(
           Operators.(
             test(
-              Log.buildAssertMessage(
+              LogUtils.buildAssertMessage(
                 ~expect=
                   {j|uniform field: $fieldName exist in shader:$shaderName|j},
                 ~actual={j|not|j},
@@ -196,7 +196,7 @@ module GLSLLocation = {
                 |> assertTrue;
 
                 _getUniformLocationMap(state)
-                |> ImmutableHashMap.unsafeGet(shaderName)
+                |> ImmutableHashMap.unsafeGetByNull(shaderName)
                 |> ImmutableHashMap.has(fieldName)
                 |> assertTrue;
               },
@@ -207,23 +207,23 @@ module GLSLLocation = {
     );
 
     _getUniformLocationMap(state)
-    |> ImmutableHashMap.unsafeGet(shaderName)
-    |> ImmutableHashMap.unsafeGet(fieldName);
+    |> ImmutableHashMap.unsafeGetByNull(shaderName)
+    |> ImmutableHashMap.unsafeGetByNull(fieldName);
   };
 
-  let _getUniformLocation = (program, fieldName, gl) =>
+  let _getUniformLocationByThrow = (program, fieldName, gl) =>
     Gl.getUniformLocation(program, fieldName, gl)
-    |> Contract.ensureCheck(
+    |> ContractUtils.ensureCheck(
          location =>
-           Contract.(
+           ContractUtils.(
              Operators.(
                test(
-                 Log.buildAssertMessage(
+                 LogUtils.buildAssertMessage(
                    ~expect={j|uniform location of $fieldName exist|j},
                    ~actual={j|not|j},
                  ),
                  () =>
-                 Obj.magic(location) |> assertNullExist
+                 location |> assertNullExist
                )
              )
            ),
@@ -233,7 +233,7 @@ module GLSLLocation = {
   let setUniformLocation = (program, shaderName, fieldName, gl, state) => {
     let uniformLocationMap = _getUniformLocationMap(state);
     let location =
-      _getUniformLocation(program, fieldName, gl) |> Js.Null.getUnsafe;
+      _getUniformLocationByThrow(program, fieldName, gl) |> Js.Null.getUnsafe;
 
     {
       ...state,
@@ -256,7 +256,7 @@ module GLSLSender = {
   };
 
   let _fastGetCache = (shaderCacheMap, name: string) =>
-    shaderCacheMap |> ImmutableHashMap.fastGet(name);
+    shaderCacheMap |> ImmutableHashMap.fastGetByNull(name);
 
   let _queryIsNotCacheWithCache = (cache, x, y, z) => {
     let isNotCached = ref(false);
@@ -282,19 +282,19 @@ module GLSLSender = {
       (shaderCacheMap, name: string, (x: float, y: float, z: float)) => {
     let (has, cache) = _fastGetCache(shaderCacheMap, name);
 
-    has ?
-      (shaderCacheMap, _queryIsNotCacheWithCache(cache, x, y, z)) :
-      (_setCache(shaderCacheMap, name, [|x, y, z|]), true);
+    has
+      ? (shaderCacheMap, _queryIsNotCacheWithCache(cache, x, y, z))
+      : (_setCache(shaderCacheMap, name, [|x, y, z|]), true);
   };
 
   let sendFloat3 =
       (gl, (name: string, pos: Gl.uniformLocation), valueArr, shaderCacheMap) => {
-    Contract.requireCheck(
+    ContractUtils.requireCheck(
       () =>
-        Contract.(
+        ContractUtils.(
           Operators.(
             test(
-              Log.buildAssertMessage(
+              LogUtils.buildAssertMessage(
                 ~expect={j|valueArr.length === 3|j},
                 ~actual={j|not|j},
               ),
@@ -332,13 +332,13 @@ module GLSLSender = {
     },
   };
 
-  let unsafeGetShaderCacheMap = (shaderName, state) => {
-    Contract.requireCheck(
+  let unsafeGetShaderCacheMapByThrow = (shaderName, state) => {
+    ContractUtils.requireCheck(
       () =>
-        Contract.(
+        ContractUtils.(
           Operators.(
             test(
-              Log.buildAssertMessage(
+              LogUtils.buildAssertMessage(
                 ~expect={j|shaderCacheMap of shader:$shaderName exist|j},
                 ~actual={j|not|j},
               ),
@@ -352,7 +352,7 @@ module GLSLSender = {
       Debug.getIsDebug(DebugData.getDebugData()),
     );
 
-    getUniformCacheMap(state) |> ImmutableHashMap.unsafeGet(shaderName);
+    getUniformCacheMap(state) |> ImmutableHashMap.unsafeGetByNull(shaderName);
   };
 
   let setShaderCacheMap = (shaderName, shaderCacheMap, state) =>
@@ -381,22 +381,22 @@ let _compileShader = (gl, glslSource: string, shader) => {
   Gl.compileShader(shader, gl);
 
   shader
-  |> Contract.ensureCheck(
+  |> ContractUtils.ensureCheck(
        shader =>
-         Contract.(
+         ContractUtils.(
            Gl.getShaderParameter(shader, Gl.getCompileStatus(gl), gl)
-           === false ?
-             {
+           === false
+             ? {
                let message = Gl.getShaderInfoLog(shader, gl);
 
-               Log.log({j|shader info log:
+               LogUtils.log({j|shader info log:
           $message|j});
-               Log.log({j|glsl source:
+               LogUtils.log({j|glsl source:
           $glslSource|j});
 
                assertFail();
-             } :
-             ()
+             }
+             : ()
          ),
        Debug.getIsDebug(DebugData.getDebugData()),
      );
@@ -406,15 +406,15 @@ let _linkProgram = (program, gl) => {
   Gl.linkProgram(program, gl);
 
   ()
-  |> Contract.ensureCheck(
+  |> ContractUtils.ensureCheck(
        () =>
-         Contract.
+         ContractUtils.
            /*! perf: slow
 
              let message = Gl.getProgramInfoLog(program, gl);
 
              test(
-               Log.buildAssertMessage(
+               LogUtils.buildAssertMessage(
                  ~expect={j|link program success|j},
                  ~actual={j|fail: $message|j},
                ),
@@ -425,17 +425,17 @@ let _linkProgram = (program, gl) => {
            /*! perf: faster */
            (
              Gl.getProgramParameter(program, Gl.getLinkStatus(gl), gl)
-             === false ?
-               {
+             === false
+               ? {
                  let message = Gl.getProgramInfoLog(program, gl);
 
-                 Log.buildAssertMessage(
+                 LogUtils.buildAssertMessage(
                    ~expect={j|link program success|j},
                    ~actual={j|fail: $message|j},
                  )
                  |> assertFailWithMessage;
-               } :
-               ()
+               }
+               : ()
            ),
        Debug.getIsDebug(DebugData.getDebugData()),
      );

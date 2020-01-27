@@ -1,10 +1,10 @@
 let unsafeGet = optionData =>
-  Contract.requireCheckReturnResult(
+  ContractUtils.requireCheckReturnResult(
     () =>
-      Contract.(
+      ContractUtils.(
         Operators.(
           test(
-            Log.buildAssertMessage(
+            LogUtils.buildAssertMessage(
               ~expect={j|data exist(get by getExn)|j},
               ~actual={j|not|j},
             ),

@@ -1,40 +1,42 @@
 let _assert = (result: bool, message) =>
-  !result ? Error.raiseError(message) : ();
+  !result ? ErrorUtils.raiseError(message) : ();
 
 let test = (message, func) =>
-  try (func()) {
-  | _ => Error.raiseError(message)
+  try(func()) {
+  | _ => ErrorUtils.raiseError(message)
   };
 
 let requireCheckReturnResult =
     (checkFunc: unit => unit, bodyFunc: unit => 'a, isCheck: bool)
     : Result.t('a, Js.Exn.t) =>
-  isCheck ?
-    try (
-      {
-        checkFunc();
-        bodyFunc() |> Result.succeed;
+  isCheck
+    ? try(
+        {
+          checkFunc();
+          bodyFunc() |> Result.succeed;
+        }
+      ) {
+      | Js.Exn.Error(e) => Result.fail(e)
+      | err =>
+        Result.fail(Js.Exn.raiseError({j|unknown check error: $err|j}))
       }
-    ) {
-    | Js.Exn.Error(e) => Result.fail(e)
-    | err => Result.fail(Js.Exn.raiseError({j|unknown check error: $err|j}))
-    } :
-    bodyFunc() |> Result.succeed;
+    : bodyFunc() |> Result.succeed;
 
 let ensureCheckReturnResult =
     (checkFunc: 'a => unit, isCheck: bool, returnVal: 'a)
     : Result.t('a, Js.Exn.t) =>
-  isCheck ?
-    try (
-      {
-        checkFunc(returnVal);
-        returnVal |> Result.succeed;
+  isCheck
+    ? try(
+        {
+          checkFunc(returnVal);
+          returnVal |> Result.succeed;
+        }
+      ) {
+      | Js.Exn.Error(e) => Result.fail(e)
+      | err =>
+        Result.fail(Js.Exn.raiseError({j|unknown check error: $err|j}))
       }
-    ) {
-    | Js.Exn.Error(e) => Result.fail(e)
-    | err => Result.fail(Js.Exn.raiseError({j|unknown check error: $err|j}))
-    } :
-    returnVal |> Result.succeed;
+    : returnVal |> Result.succeed;
 
 let requireAndEnsureCheckReturnResult =
     (
@@ -44,35 +46,35 @@ let requireAndEnsureCheckReturnResult =
       isCheck: bool,
     )
     : Result.t('a, Js.Exn.t) =>
-  isCheck ?
-    try (
-      {
-        requireCheckFunc();
+  isCheck
+    ? try(
+        {
+          requireCheckFunc();
 
-        let returnVal = bodyFunc();
+          let returnVal = bodyFunc();
 
-        ensureCheckFunc(returnVal);
-        returnVal |> Result.succeed;
+          ensureCheckFunc(returnVal);
+          returnVal |> Result.succeed;
+        }
+      ) {
+      | Js.Exn.Error(e) => Result.fail(e)
+      | err =>
+        Result.fail(Js.Exn.raiseError({j|unknown check error: $err|j}))
       }
-    ) {
-    | Js.Exn.Error(e) => Result.fail(e)
-    | err => Result.fail(Js.Exn.raiseError({j|unknown check error: $err|j}))
-    } :
-    bodyFunc() |> Result.succeed;
+    : bodyFunc() |> Result.succeed;
 
 let requireCheck = (checkFunc: unit => unit, isCheck: bool): unit =>
   isCheck ? checkFunc() : ();
 
-let ensureCheck =
-    (checkFunc: 'a => unit, isCheck: bool, returnVal: 'a): 'a =>
-  isCheck ?
-    {
+let ensureCheck = (checkFunc: 'a => unit, isCheck: bool, returnVal: 'a): 'a =>
+  isCheck
+    ? {
       checkFunc(returnVal);
       returnVal;
-    } :
-    returnVal;
+    }
+    : returnVal;
 
-let assertFailWithMessage = message => Error.raiseError(message);
+let assertFailWithMessage = message => ErrorUtils.raiseError(message);
 
 let assertFail = () => assertFailWithMessage("fail");
 
@@ -97,7 +99,7 @@ let assertIsBool = (source: bool) =>
   );
 
 let assertNullableExist = (source: 'a) =>
-  _assert(!Null.isEmpty(source), "expect exist, but actual not");
+  _assert(!NullUtils.isEmpty(source), "expect exist, but actual not");
 
 let assertNullExist = (source: 'a) =>
   _assert(!Js.Null.test(source), "expect exist, but actual not");

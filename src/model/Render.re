@@ -26,7 +26,7 @@ let _createVAOs =
   );
 
   let positionLocation =
-    Shader.GLSLLocation.unsafeGetAttribLocation(
+    Shader.GLSLLocation.unsafeGetAttribLocationByThrow(
       shaderName,
       "a_position",
       state,
@@ -61,7 +61,7 @@ let _createVAOs =
 let _initVAOs = (gl, state) =>
   GPUDetect.unsafeGetVAOExt(state)
   |> Result.map(vaoExt =>
-       GameObject.getGameObjectDataList(state)
+       GameObject.getAllGameObjectData(state)
        |> List.map(
             ({transformData, geometryData, materialData} as gameObjectData) =>
             {
@@ -85,17 +85,16 @@ let _initVAOs = (gl, state) =>
                 },
             }
           )
-       |> GameObject.setGameObjectDataList(_, state)
+       |> GameObject.setAllGameObjectData(_, state)
      );
 
 let _getProgram = (shaderName, state) =>
-  Shader.Program.unsafeGetProgram(shaderName, state);
+  Shader.Program.unsafeGetProgramByThrow(shaderName, state);
 
-let _changeGameObjectDataListToRenderDataList =
-    (gameObjectDataList, gl, state) =>
+let _changeAllGameObjectDataToRenderDataList = (allGameObjectData, gl, state) =>
   GPUDetect.unsafeGetVAOExt(state)
   |> Result.bind(vaoExt =>
-       gameObjectDataList
+       allGameObjectData
        |> ListWT.traverseResultM(
             ({transformData, geometryData, materialData} as gameObjectData) =>
             GameObject.Geometry.unsafeGetVAO(geometryData)
@@ -135,13 +134,13 @@ let _sendAttributeData = (vaoExt, vao, state) =>
 let _sendCameraUniformData =
     ((vMatrix, pMatrix), program, shaderName, gl, state) => {
   let vMatrixLocation =
-    Shader.GLSLLocation.unsafeGetUniformLocation(
+    Shader.GLSLLocation.unsafeGetUniformLocationByThrow(
       shaderName,
       "u_vMatrix",
       state,
     );
   let pMatrixLocation =
-    Shader.GLSLLocation.unsafeGetUniformLocation(
+    Shader.GLSLLocation.unsafeGetUniformLocationByThrow(
       shaderName,
       "u_pMatrix",
       state,
@@ -154,7 +153,7 @@ let _sendCameraUniformData =
 let _sendModelUniformData =
     ((mMatrix, colors), program, shaderName, gl, state) => {
   let mMatrixLocation =
-    Shader.GLSLLocation.unsafeGetUniformLocation(
+    Shader.GLSLLocation.unsafeGetUniformLocationByThrow(
       shaderName,
       "u_mMatrix",
       state,
@@ -168,7 +167,7 @@ let _sendModelUniformData =
          ((state, index), (r, g, b)) => {
            let colorFieldName = {j|u_color$index|j};
            let colorLocation =
-             Shader.GLSLLocation.unsafeGetUniformLocation(
+             Shader.GLSLLocation.unsafeGetUniformLocationByThrow(
                shaderName,
                colorFieldName,
                state,
@@ -177,7 +176,7 @@ let _sendModelUniformData =
            (
              Shader.GLSLSender.setShaderCacheMap(
                shaderName,
-               Shader.GLSLSender.unsafeGetShaderCacheMap(shaderName, state)
+               Shader.GLSLSender.unsafeGetShaderCacheMapByThrow(shaderName, state)
                |> Shader.GLSLSender.sendFloat3(
                     gl,
                     (colorFieldName, colorLocation),
@@ -207,7 +206,7 @@ let _sendUniformShaderData = (gl, state) =>
        |> List.fold_left(
             (state, (shaderName, _)) => {
               let program =
-                Shader.Program.unsafeGetProgram(shaderName, state);
+                Shader.Program.unsafeGetProgramByThrow(shaderName, state);
 
               let state = Shader.Program.use(gl, program, state);
 
@@ -225,13 +224,15 @@ let _sendUniformShaderData = (gl, state) =>
           );
      });
 
-let render = (gl, state) =>
+let render = (gl, state) => {
+  DeviceManager.initGlState(gl);
+
   state
   |> _sendUniformShaderData(gl)
   |> Result.bind(_initVAOs(gl))
   |> Result.bind(state =>
-       _changeGameObjectDataListToRenderDataList(
-         GameObject.getGameObjectDataList(state),
+       _changeAllGameObjectDataToRenderDataList(
+         GameObject.getAllGameObjectData(state),
          gl,
          state,
        )
@@ -280,3 +281,4 @@ let render = (gl, state) =>
                )
           )
      );
+};
